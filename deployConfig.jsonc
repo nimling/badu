@@ -1,0 +1,106 @@
+{
+    "$schema": "./schema/deployconfig.schema.json",
+    "tenant": "samna.io",
+    "deployLocation": "NorwayEast",
+    "bicep": {
+        "minimumVersion": "0.13.1"
+    },
+    "dev": {
+        "ignoreinstance": true,
+        "enabled": true
+    },
+    "dry": {
+        "style": "<>",
+        "throwOnUnhandledParameter": true
+    },
+    "environments": [
+        {
+            "name": "test",
+            "isScoped": true,
+            "variables": {
+                "env": {
+                    "type": "static",
+                    "description": "Environment",
+                    "value": "tst"
+                }
+            }
+        },
+        {
+            "name": "dev",
+            "isScoped": true,
+            "variables": {
+                "env": {
+                    "type": "static",
+                    "description": "Environment",
+                    "value": "dev"
+                }
+            }
+        },
+        {
+            "name": "prod",
+            "isScoped": true,
+            "variables": {
+                "env": {
+                    "type": "static",
+                    "description": "my description of variable",
+                    "value": "prd"
+                }
+            }
+        },
+        {
+            "name": "any",
+            "isScoped": false,
+            "variables": {
+                "keyvault":{
+                    "type": "keyvault",
+                    "secret": "mysecret",
+                    "vault": "myvault",
+                    "version": ""
+                },
+                "container-registry":{
+                    "type": "static",
+                    "description": "Container registry",
+                    "value": "ntsallcommoncr",
+                    "tag": "container-registry"
+                },
+                "all-env": {
+                    "type": "static",
+                    "description": "Environment",
+                    "value": "all"
+                },
+                "project": {
+                    "type": "static",
+                    "description": "Project name",
+                    "value": "samna",
+                    "tag": "project"
+                },
+                "location": {
+                    "type": "static",
+                    "description": "Location",
+                    "value": "NorwayEast"
+                },
+                "tags": {
+                    "type": "static",
+                    "description": "Tags",
+                    "value": {
+                        "owner": "Philip Meholm",
+                        "contact": "Philip@nimtech.no"
+                    },
+                    "tag": "tags"
+                },
+                "collections":{
+                    "type": "static",
+                    "description": "Collections",
+                    "value": [
+                        "devices",
+                        "organizations",
+                        "teams",
+                        "templates",
+                        "themes"
+                    ],
+                    "tag": "collections"
+                }
+            }
+        }
+    ]
+}

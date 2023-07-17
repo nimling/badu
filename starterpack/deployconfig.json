@@ -1,0 +1,10 @@
+{
+  "environments": [],
+  "$schema": "./deployconfig.schema.json",
+  "dry": {
+    "style": "<>",
+    "throwOnUnhandledParameter": true
+  },
+  "tenant": "nimtech.no",
+  "deployLocation": "westeurope"
+}
