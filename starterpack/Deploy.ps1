@@ -2036,7 +2036,8 @@ if($WhatIfPreference -and $SubFolders.count){
     $RgFolders = Get-ChildItem $subFolder.FullName -Directory
     $RgFolders = $RgFolders | Where-Object { Get-ChildItem $_.fullname -filter "*.bicep" -file } 
     if(@($RgFolders).count -eq 0 ){
-        break :subFolderSearch
+        Write-Verbose "No resource group folders found in subscription folder '$($subFolder.name)'"
+        continue :subFolderSearch
     }
     $RgFolders = $RgFolders| Update-DeploySorting
     $RgFolders = $RgFolders | Select-ByEnvironment -Environments $DeployConfig.Environments -all:$subscriptionHasEnvNotation
