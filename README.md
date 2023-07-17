@@ -75,6 +75,7 @@ note that any environment set at a higher level will be inherited by the lower l
 
 ## Varaiables
 
+It does not support the new bicepParam yet
 more info about this is here: [Variables](docs/variables.md)
 
 this is connected to the usage of environment, and can make your deployment DRY.
