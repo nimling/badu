@@ -1,7 +1,8 @@
 
-THIS VERSION IS NOT WORKING YET. PLEASE USE THE OLD VERSION UNTIL THIS IS FIXED. 
-please contact me ([philip@nimtech](mailto:Philip@nimtech.no)) or write a issue here on github if you want it.
-i have a older version that works identically to this, but i want to make it better and more user friendly before going properly public with it.
+please use the code in /starterpack, as this is the most up to date version.
+this version handles all the requests suncronously, and is slower than i like. The new version handles all requests async, and is much faster. however, it is not yet ready for public use, as it is not fully tested.
+
+please contact me ([philip@nimtech](mailto:Philip@nimtech.no)) or write a issue here if you want to contribute.
 
 # Bicep Arm Deployment Utility (BADU)
 ---
