@@ -1,6 +1,6 @@
 
 THIS VERSION IS NOT WORKING YET. PLEASE USE THE OLD VERSION UNTIL THIS IS FIXED. 
-if you like the idea of this tool, please contact me ([philip@nimtech](mailto:Philip@nimtech.no)) or write a issue here on github.
+please contact me ([philip@nimtech](mailto:Philip@nimtech.no)) or write a issue here on github if you want it.
 i have a older version that works identically to this, but i want to make it better and more user friendly before going properly public with it.
 
 # Bicep Arm Deployment Utility (BADU)
