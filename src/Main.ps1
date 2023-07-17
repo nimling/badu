@@ -87,7 +87,7 @@ try{
     $DeployConfig = Get-DeployConfig
     # $EnvInfo = $DeployConfig.environments|%{"Enviroment Name: '$($_.name)', IsScoped: $($_.IsScoped)"}
     $rootFolders = gci $Path -Directory|Select-ByEnvironment
-    Write-BaduVerb "Discovery: Getting items to deploy"
+    Write-BaduInfo "Discovery: Getting items to deploy"
 
     Foreach($RootFolder in $rootFolders){
         $DeployItems = Find-DeploymentItem -RelativePath (join-path ".\" $RootFolder.Name) -Root $Path

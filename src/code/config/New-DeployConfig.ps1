@@ -1,6 +1,4 @@
 function New-DeployConfig {
-    # [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseDeclaredVarsMoreThanAssignments", Scope="Function", Target="*")]
-    # [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", Scope="Function", Target="*")]
     [CmdletBinding()]
     param (
         [DirectoryInfo]$WorkingPath,
@@ -30,8 +28,14 @@ function New-DeployConfig {
     
     process {
         # Write-BaduVerb $deployConfigObject.gettype()
-        $Config = [deployconfig]::new($deployConfigObject,$ActiveEnvironment)
-        $config.workingPath = $deployconfigFile.Directory.FullName
+        try{
+            $Config = [deployconfig]::new($deployConfigObject,$ActiveEnvironment)
+            $config.workingPath = $deployconfigFile.Directory.FullName
+        }
+        catch{
+            Write-BaduError "Failed to create deployConfig object : $_"
+            throw $_
+        }
 
         [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Used for global config singleton')]
         $Global:deployConfig = $Config

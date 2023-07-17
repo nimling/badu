@@ -171,8 +171,18 @@ class deployEnvironment {
         if (!$this.name) {
             throw "name is required"
         }
-        if (!$this.isScoped) {
-            throw "isScoped is required"
+        if ($null -eq $this.isScoped) {
+            throw "$($this.name) -> isScoped is required"
+        }
+        if ($this.variables) {
+            foreach ($variable in $this.variables.getEnumerator()) {
+                try{
+                    $variable.value.validate()
+                }
+                catch{
+                    throw "environment '$($this.name)' has invalid variable '$($variable.Name)': $_"
+                }
+            }
         }
     }
 }
@@ -285,6 +295,7 @@ class deployConfigDev {
 }
 
 class deployConfig {
+    #region properties
     [string]$tenant
     [string]$deployLocation
     [string]$workingPath
@@ -293,10 +304,15 @@ class deployConfig {
     [deployConfigBicep]$bicep = [deployConfigBicep]::new()
     [deployConfigDev]$dev = [deployConfigDev]::new()
     [deployWorkflow]$workflow = [deployWorkflow]::new()
-    [int]$InstanceId 
+
+    #used to handle singleton-ish? its loaded into global and can only be retreived if the root instance id is the same as the one that is trying to get it (2 runs of the same script will have different instance ids)
+    [int]$InstanceId
+
+    #proper guid tenant id
     hidden [string]$_tenantid = $null
     hidden [string]$_setTenant = $null
     hidden [List[string]]$environmentPresedence = [List[string]]::new()
+    #endregion properties
 
     static [deployConfig]get() {
         #if deployconfig isnt set, throw
@@ -391,6 +407,11 @@ class deployConfig {
     }
 
     hidden validate() {
+        $this.bicep.validate()
+        $this.environments|ForEach-Object {
+            $_.validate()
+        }
+
         $this.validateTenant()
         $this.validateDeployLocation()
     }
