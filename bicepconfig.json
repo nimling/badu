@@ -1,0 +1,82 @@
+{
+  "analyzers": {
+    "core": {
+      "verbose": true,
+      "rules": {
+        "no-unused-existing-resources":{
+          "level": "warning"
+        },
+        "no-unused-params": {
+          "level": "error"
+        },
+        "decompiler-cleanup":{
+          "level": "warning"
+        },
+        "use-recent-api-versions":{
+          "level": "error"
+        },
+        "secure-secrets-in-params":{
+          "level": "error"
+        },
+        "prefer-unquoted-property-names":{
+          "level": "off"
+        },
+        "max-params":{
+          "level": "warning"
+        },
+        "no-hardcoded-env-urls": {
+          "level": "warning",
+          "disallowedhosts": [
+            "gallery.azure.com",
+            "management.core.windows.net",
+            "management.azure.com",
+            "database.windows.net",
+            "core.windows.net",
+            "login.microsoftonline.com",
+            "graph.windows.net",
+            "trafficmanager.net",
+            "datalake.azure.net",
+            "azuredatalakestore.net",
+            "azuredatalakeanalytics.net",
+            "vault.azure.net",
+            "api.loganalytics.io",
+            "asazure.windows.net",
+            "region.asazure.windows.net",
+            "batch.core.windows.net"
+          ],
+          "excludedhosts": [
+            "schema.management.azure.com"
+          ]
+        },
+        "use-parent-property":{
+          "level": "error"
+        },
+        "use-resource-id-functions":{
+          "level": "error"
+        }
+      },
+      "enabled": true
+    }
+  },
+  "moduleAliases": {
+    "ts": {},
+    "br": {
+      "otg":{
+        "registry": "myregistry.azurecr.io"
+      }
+    }
+  },
+  "experimentalFeaturesEnabled": {
+    "userDefinedTypes": true,
+    "resourceTypedParamsAndOutputs": true,
+    "sourceMapping": true,
+    "symbolicNameCodegen": true
+  },
+  "cloud": {
+    "currentProfile": "AzureCloud",
+    "credentialPrecedence": [
+      "AzurePowerShell",
+      "Environment"
+    ]
+  }
+}
