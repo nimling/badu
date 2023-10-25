@@ -26,8 +26,12 @@ class envVariable {
 }
 
 class envVariable_keyvault:envVariable {
+    [ValidateNotNullOrEmpty()]
+    [validateset('keyvault')]
     [string]$type = "keyvault"
+
     [string]$description
+    [ValidateNotNullOrEmpty()]
     [string]$secret
     [string]$vault
     [string]$version
@@ -105,7 +109,7 @@ class envVariable_static:envVariable {
     }
 }
 
-class envVariable_identity:envVariable{
+class envVariable_identity:envVariable {
     [string]$type = "identity"
     [string]$description
     [string]$source
@@ -176,10 +180,9 @@ class deployEnvironment {
         }
         if ($this.variables) {
             foreach ($variable in $this.variables.getEnumerator()) {
-                try{
+                try {
                     $variable.value.validate()
-                }
-                catch{
+                } catch {
                     throw "environment '$($this.name)' has invalid variable '$($variable.Name)': $_"
                 }
             }
@@ -285,13 +288,18 @@ class deployConfigDev {
             Write-BaduWarning "DEV MODE ENABLED! this setting should only for deployment of BADU"
             Write-BaduVerb "**dev settings**"
             $MaxLength = ($this.psobject.properties.name | Measure-Object -Maximum length).Maximum
-            Foreach($Prop in $this.psobject.properties) {
+            Foreach ($Prop in $this.psobject.properties) {
                 $NameWithPad = $Prop.Name.padright($MaxLength, " ")
                 Write-BaduVerb "$NameWithPad : $($Prop.Value)"
             }
             # Write-BaduVerb ""
         }
     }
+}
+
+class SchemaStoreItem{
+    [string]$raw
+    [NJsonSchema.JsonSchema]$schema
 }
 
 class deployConfig {
@@ -304,6 +312,12 @@ class deployConfig {
     [deployConfigBicep]$bicep = [deployConfigBicep]::new()
     [deployConfigDev]$dev = [deployConfigDev]::new()
     [deployWorkflow]$workflow = [deployWorkflow]::new()
+
+    #used to track what messages have been sent to the user. For now used by warning to not send repeated messages
+    [Dictionary[string, bool]]$messageTags = [Dictionary[string, bool]]::new()
+
+    #used to store the schema files that have been loaded. this is used to avoid loading the same schema file multiple times
+    [Dictionary[string, SchemaStoreItem]] $schemaStore = [Dictionary[string, SchemaStoreItem]]::new()
 
     #used to handle singleton-ish? its loaded into global and can only be retreived if the root instance id is the same as the one that is trying to get it (2 runs of the same script will have different instance ids)
     [int]$InstanceId
@@ -358,38 +372,7 @@ class deployConfig {
 
         $this.InstanceId = (get-pscallstack)[-1].GetHashCode()
 
-        #assign environments
-        :loadenv foreach ($configEnv in $Config.environments) {
-            $env = [deployEnvironment]::new($configEnv)
-            #if its not the current environment and its scoped, skip it
-            if ($env.name -ne $ActiveEnvironment -and $env.isScoped) {
-                $EnvFeedback = "- env '$($env.name)'"
-                if($env.isScoped){
-                    $EnvFeedback = ($EnvFeedback + " (scoped)")
-                }
-
-                Write-BaduVerb $EnvFeedback
-                continue :loadenv
-            }
-
-            if ($env.name -in $this.environments.name) {
-                throw "environment '$($env.name)' is defined more than once"
-            }
-
-            $EnvFeedback = "+ env '$($env.name)'"
-            if($env.isScoped){
-                $EnvFeedback = ($EnvFeedback + " (scoped)")
-            }
-            Write-BaduVerb $EnvFeedback
-
-            $this.environments.Add($env)
-        }
-
-        #handle active environments. i need to add scoped environments to the list first, 
-        #becaue is want variables from scoped environments to be available first (in case of duplicates)
-        $this.environments | sort-object isScoped -Descending | ForEach-Object {
-            $this.environmentPresedence.Add($_.name)
-        }
+        $this.assignEnvironments($config.environments,$ActiveEnvironment)
 
         #handle dry
         $this.dry = [deployConfigDry]::new($Config.dry)
@@ -398,17 +381,52 @@ class deployConfig {
         $this.bicep = [deployConfigBicep]::new($Config.bicep)
 
         #handle workflow
-        if($Config.workflow)
-        {
+        if ($Config.workflow) {
             $this.workflow = [deployWorkflow]::new($Config.workflow)
         }
 
         $this.validate()
     }
 
+    hidden assignEnvironments($Environments,[string]$ActiveEnvironment) {
+        Set-BaduLogContext -Tag "assign env"
+        #assign environments
+        :loadenv foreach ($configEnv in $Environments) {
+            $env = [deployEnvironment]::new($configEnv)
+            #if its not the current environment and its scoped, skip it
+            if ($env.name -ne $ActiveEnvironment -and $env.isScoped) {
+                $EnvFeedback = "- env '$($env.name)'"
+                if ($env.isScoped) {
+                    $EnvFeedback = ($EnvFeedback + " (scoped)")
+                }
+        
+                Write-BaduVerb $EnvFeedback
+                continue :loadenv
+            }
+        
+            if ($env.name -in $this.environments.name) {
+                throw "environment '$($env.name)' is defined more than once"
+            }
+        
+            $EnvFeedback = "+ env '$($env.name)'"
+            if ($env.isScoped) {
+                $EnvFeedback = ($EnvFeedback + " (scoped)")
+            }
+            Write-BaduVerb $EnvFeedback
+        
+            $this.environments.Add($env)
+        }
+        
+        #handle active environments. i need to add scoped environments to the list first, 
+        #becaue is want variables from scoped environments to be available first (in case of duplicates)
+        $this.environments | sort-object isScoped -Descending | ForEach-Object {
+            $this.environmentPresedence.Add($_.name)
+        }
+    }
+
     hidden validate() {
         $this.bicep.validate()
-        $this.environments|ForEach-Object {
+        $this.environments | ForEach-Object {
             $_.validate()
         }
 
@@ -469,5 +487,9 @@ class deployConfig {
     [deployEnvironment]getEnvironment([string]$Name) {
         $ret = $this.environments | Where-Object { $_.name -eq $Name } | Select-Object -first 1
         return $ret
+    }
+
+    [string]getRelativePath([string]$Path) {
+        return [System.IO.Path]::GetRelativePath($this.workingPath, $Path)
     }
 }

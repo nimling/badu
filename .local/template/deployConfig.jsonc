@@ -1,0 +1,62 @@
+{
+    "$schema": "./schema/deployconfig.schema.json",
+    "tenant": "samna.io",
+    "deployLocation": "NorwayEast",
+    "bicep": {
+        "minimumVersion": "0.13.1"
+    },
+    "dev": {
+        "ignoreinstance": true,
+        "enabled": true
+    },
+    "dry": {
+        "style": "<>",
+        "throwOnUnhandledParameter": true
+    },
+    "environments": [
+        {
+            "name": "test",
+            "isScoped": true,
+            "variables": {
+                "env": {
+                    "type": "static",
+                    "description": "Environment",
+                    "value": "tst"
+                }
+            }
+        },
+        {
+            "name": "dev",
+            "isScoped": true,
+            "variables": {
+                "env": {
+                    "type": "static",
+                    "description": "Environment",
+                    "value": "dev"
+                }
+            }
+        },
+        {
+            "name": "prod",
+            "isScoped": true,
+            "variables": {
+                "env": {
+                    "type": "static",
+                    "description": "my description of variable",
+                    "value": "prd"
+                }
+            }
+        },
+        {
+            "name": "any",
+            "isScoped": false,
+            "variables": {
+                "env": {
+                    "type": "static",
+                    "description": "Environment",
+                    "value": "any"
+                }
+            }
+        }
+    ]
+}

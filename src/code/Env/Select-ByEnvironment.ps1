@@ -35,24 +35,14 @@ General notes
 #>
 function Select-ByEnvironment {
     param(
-        # # [Parameter(Mandatory)]
-        # [List[deployEnvironment]]$environments,
-
-        # [switch]$All,
-
         [parameter(
-            ValueFromPipeline,
             Mandatory,
-            ParameterSetName = "folder")]
-        [System.IO.DirectoryInfo]$InputFolders,
-
-        [parameter(
-            ValueFromPipeline,
-            Mandatory,
-            ParameterSetName = "file")]
-        [System.IO.FileInfo]$InputFiles
+            ValueFromPipeline
+        )]
+        [System.IO.FileSystemInfo]$Item
     )
     begin {
+        Set-BaduLogContext -Tag 'Select By Env' -IsSubFunction
         $environments = (Get-DeployConfig).environments
         $return = @()
         $envHasValues = $environments.Count -gt 0
@@ -70,33 +60,34 @@ function Select-ByEnvironment {
     }
     process {
         #concat input files and folders. easier to work with
-        $InputItems = @($InputFolders, $InputFiles)|Where-Object { $_}
+        # $InputItems = @($InputFolders, $InputFiles)|Where-Object { $_}
 
         #either way. always ignore files/folders that ends with .ignore
-        $InputItems = $InputItems | Where-Object { $_.basename -notlike "*.ignore" }
+        $Item = $Item | Where-Object { $_.basename -notlike "*.ignore" }
 
         #if no env values is present in deployconfig.json, return all items
         if(!$envHasValues){
-            $return += $InputItems
+            $return += $Item
             return
         }
 
         #always get items that are within the active scopes "whatever.{env}"
         $Environments | ForEach-Object {
             $envName = $_.name
-            $InputItems | Where-Object { $_.basename -like "*.$envName" } | ForEach-Object {
+            $Item | Where-Object { $_.basename -like "*.$envName" } | ForEach-Object {
                 $return += $_
             }
         }
 
         #always get items that do not have a dot in the name
-        $InputItems | Where-Object { $_.basename -notlike "*.*" } | ForEach-Object {
+        $Item | Where-Object { $_.basename -notlike "*.*" } | ForEach-Object {
             $return += $_
         }
     }
     end {
-        return $return |%{
-            Write-BaduDebug "Select Env: $($PSCmdlet.ParameterSetName) '$($_.basename)' matches env filter"
+        return $return |?{$_}|%{
+            $type = $_.GetType().Name.replace("Info", "")
+            Write-BaduDebug "$type '$($_.basename)' matches env filter ($($environments.name -join ', '))"
             $_
         }| Select-Object -Unique
     }

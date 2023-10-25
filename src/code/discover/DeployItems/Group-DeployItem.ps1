@@ -29,7 +29,7 @@ gci -Recurse -File | Group-DeployItems
     '...' = @(item1, item2, item3)
 }
 
-.EXAMPLE
+.EXAMPL
 for sorting with sort-file, if files is:
 * item1.txt
 * item2.txt
@@ -54,29 +54,32 @@ function Group-DeployItem {
     param (
         [parameter(
             ValueFromPipeline,
-            ParameterSetName = 'file',
+            # ParameterSetName = 'file',
             Mandatory
         )]
-        [FileInfo]$InputFile,
-        [parameter(
-            ValueFromPipeline,
-            ParameterSetName = 'folder',
-            Mandatory
-        )]
-        [DirectoryInfo]$inputFolder
+        [FileSystemInfo]$Item
+        # [FileInfo]$InputFile,
+        # [parameter(
+        #     ValueFromPipeline,
+        #     ParameterSetName = 'folder',
+        #     Mandatory
+        # )]
+        # [DirectoryInfo]$inputFolder
     )
     
     begin {
+        Set-BaduLogContext -Tag 'Sort Items' -IsSubFunction
         $map = [Dictionary[string, List[FileSystemInfo]]]::new()
-        $parent = ""
+        # $parent = ""
         $deploysort = @()
         $deploysort_filename = "sort"
+        $items = @()
     }
     
     process {
         #concatonate so i dont have to process several variables
-        $item = @($inputFolder, $InputFile) | Where-Object { $_ }
-
+        # $item = @($inputFolder, $InputFile) | Where-Object { $_ }
+        $items += $item
         $parentDir = [System.IO.Path]::GetDirectoryName($item.FullName)
         
         #init map if not already done
@@ -85,7 +88,7 @@ function Group-DeployItem {
             $deploysort_path = (join-path $parentDir $deploysort_filename)
             
             if (test-path $deploysort_path) {
-                Write-BaduVerb "$($PSCmdlet.ParameterSetName) sort-file: $deploysort_path`: $($map.Keys -join ', ')"
+                # Write-BaduDebug "$($PSCmdlet.ParameterSetName) sort-file: $deploysort_path`: $($map.Keys -join ', ')"
                 $deploysort = @(get-content $deploysort_path)
             } else {
                 $deploysort += '...'
@@ -113,11 +116,13 @@ function Group-DeployItem {
 
         Write-BaduDebug "Added $($item.name) to bucket '...'"
         $map.'...' += $item
-        # if (!$itemadded) {
-        # }
-
     }
     end {
+        #Nice to have: validate that all lines in sort file is being used
+        $UsedLines = ($map.GetEnumerator()|Where-Object {$_.Value.count -eq 0 }|Where-Object{$_.Key -ne '...'}).Key
+        if ($UsedLines.count -gt 0) {
+            Write-BaduWarning "The following lines in sort file in $parentDir' was not used: $($UsedLines -join ', ')"
+        }
         return $map
     }
 }

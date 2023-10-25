@@ -14,9 +14,22 @@ function Write-Badu {
         [Parameter(Mandatory = $true, Position = 0, ValueFromRemainingArguments)]
         $Message,
 
+        [string]$OnceTag,
+
         [System.Management.Automation.CallStackFrame[]]$Callstack
     )
     begin {
+        #Use OnceTag to only write once. sucks to have a warning popping up 100 times
+        if(![string]::IsNullOrEmpty($OnceTag)){
+            $Config = Get-DeployConfig
+            $Written = [bool]$Config.messageTags[$OnceTag]
+            if($Written){
+                return
+            }
+            $Config.messageTags[$OnceTag] = $true
+            Set-DeployConfig -Config $Config
+        }
+
         #get log context. send in callstack with itself removed
         $ctx = @{
             Tag           = 'TEMP'
@@ -39,7 +52,8 @@ function Write-Badu {
             'Verbose' = 'Vrb'
             'Debug'   = 'Dbg'
         }
-        $out = "<$($levelMap[$Level])>$("    " * $ctx.tab)<$tag> $msg"
+        $prefix = "<$($levelMap[$Level])>$("    " * $ctx.tab)<$tag>"
+        $out = "$prefix $msg"
 
         switch ($Level) {
             'Info' {
@@ -51,6 +65,20 @@ function Write-Badu {
             }
             'Error' {
                 Write-Host $out -ForegroundColor Red
+                # Write-host ($Message|fl * -force|out-string)
+                if($Message.ScriptStackTrace)
+                {
+                    Write-host "$prefix  $("-" * 5) Callstack $("-" * 5)" -ForegroundColor Red
+                    $Message.ScriptStackTrace.split("`n")|%{
+                        Write-Host $prefix $_ -ForegroundColor Red
+                    }
+                }
+                else{
+                    Write-host "$prefix  $("-" * 5) Callstack $("-" * 5)" -ForegroundColor Red
+                    $Callstack|%{
+                        Write-Host $prefix $_ -ForegroundColor Red
+                    }
+                }
             }
             'Verbose' {
                 if ($VerbosePreference -eq 'SilentlyContinue') { return }
@@ -95,10 +123,19 @@ function Write-BaduInfo {
 function Write-BaduWarning {
     [CmdletBinding()]
     param (
+        [string]$OnceTag,
         [Parameter(Mandatory = $true, Position = 0, ValueFromRemainingArguments)]
         $Message
     )
-    Write-Badu -Level Warning -Message $Message -Callstack (Get-PSCallStack | Select-Object -Skip 1)
+    $param = @{
+        Level     = 'Warning'
+        Message   = $Message
+        Callstack = (Get-PSCallStack | Select-Object -Skip 1)
+    }
+    if ($OnceTag) {
+        $param.OnceTag = $OnceTag
+    }
+    Write-Badu @param
 }
 
 function Write-BaduError {

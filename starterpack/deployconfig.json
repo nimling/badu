@@ -1,6 +1,10 @@
 {
   "environments": [],
   "$schema": "./deployconfig.schema.json",
+  "bicep": {
+    "minimumVersion": "^\\d+\\.\\d+\\.\\d+$"
+    //"autoUpgrade": true
+  },
   "dry": {
     "style": "<>",
     "throwOnUnhandledParameter": true

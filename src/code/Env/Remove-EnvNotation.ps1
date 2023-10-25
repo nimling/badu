@@ -21,10 +21,10 @@ function Remove-EnvNotation {
         [ValidateNotNullOrEmpty()]
         [String]$string,
 
-        [string[]]$Env
+        [string[]]$Env = (Get-DeployConfig).environments.name
     )
     begin{
-
+        Set-BaduLogContext -Tag 'Remove Env Notation' -IsSubFunction
     }
     Process{
         $env | Where-Object { $string -like "*.$_" } | ForEach-Object {

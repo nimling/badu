@@ -1,7 +1,7 @@
 {
-    "$schema": "./schema/deployconfig.schema.json",
+    "$schema": "./src/code/config/schema/deployconfig.schema.json",
     "tenant": "samna.io",
-    "deployLocation": "NorwayEast",
+    "deployLocation": "norwayeast",
     "bicep": {
         "minimumVersion": "0.13.1"
     },

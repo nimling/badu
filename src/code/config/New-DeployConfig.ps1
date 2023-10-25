@@ -6,23 +6,24 @@ function New-DeployConfig {
     )
     
     begin { 
-        Set-BaduLogContext -Tag "DeployConfig"
+        $FileName = 'badu'
+        Set-BaduLogContext -Tag "BaduConfig"
         #region load the config file contents
-        $deployconfigFile = Get-ChildItem $WorkingPath.FullName -File -filter 'deployconfig.json?' | Select-Object -first 1
-        if (!$deployconfigFile) {
-            Write-BaduError "could not find a deployconfig.json/jsonc in '$WorkingPath'"
-            throw "could not find a deployconfig.json/jsonc in '$WorkingPath'"
+        $BaduConfigFile = Get-ChildItem $WorkingPath.FullName -File -filter "$filename.json?" | Select-Object -first 1
+        if (!$BaduConfigFile) {
+            Write-BaduError "could not find a $FileName.json/jsonc in '$WorkingPath'"
+            throw "could not find a $FileName.json/jsonc in '$WorkingPath'"
         }
 
-        Write-BaduVerb "Loading deployConfig from '$deployconfigFile'"
-        $deployConfigContent = Get-Content $deployconfigFile
+        Write-BaduVerb "Loading deployConfig from '$BaduConfigFile'"
+        $BaduConfigContent = Get-Content $BaduConfigFile
 
         #clean up jsonc file (remove comments)
-        if ($deployconfigFile.Extension -eq '.jsonc') {
+        if ($BaduConfigFile.Extension -eq '.jsonc') {
             Write-BaduDebug "Fixing jsonc file before parsing"
-            $deployConfigContent = $deployConfigContent | Where-Object { $_ -notmatch '^\s*//' }
+            $BaduConfigContent = $BaduConfigContent | Where-Object { $_ -notmatch '^\s*//' }
         }
-        $deployConfigObject = $deployConfigContent | ConvertFrom-Json  #-Depth 90
+        $deployConfigObject = $BaduConfigContent | ConvertFrom-Json  #-Depth 90
         #endregion
     }
     
@@ -30,15 +31,14 @@ function New-DeployConfig {
         # Write-BaduVerb $deployConfigObject.gettype()
         try{
             $Config = [deployconfig]::new($deployConfigObject,$ActiveEnvironment)
-            $config.workingPath = $deployconfigFile.Directory.FullName
+            $config.workingPath = $BaduConfigFile.Directory.FullName
         }
         catch{
-            Write-BaduError "Failed to create deployConfig object : $_"
+            Write-BaduError "Failed to initialise $FileName config : $_"
             throw $_
         }
 
-        [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSUseDeclaredVarsMoreThanAssignments', '', Justification = 'Used for global config singleton')]
-        $Global:deployConfig = $Config
+        Set-DeployConfig -DeployConfig $Config -force
     }
     
     end {

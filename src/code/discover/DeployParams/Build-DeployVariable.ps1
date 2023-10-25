@@ -13,6 +13,7 @@ function Build-DeployVariable {
         [System.Text.RegularExpressions.Group[]]$VarRefs
     )
     begin {
+        Set-BaduLogContext -Tag "Build Deploy Variable" -IsSubFunction
         $deployconfig = Get-DeployConfig
     }
     process {
@@ -20,17 +21,17 @@ function Build-DeployVariable {
         if ($PSCmdlet.ParameterSetName -eq "parameterValue") {
             $VarRefs = @(Get-VariableReferenceInString -String $val | Select-Object -Unique)
 
-            if ($VarRefs.count -ne 0) {
-                Write-BaduVerb "Found $($References.count) variable references in '$ParamName'"
-            } else {
-                Write-BaduDebug "No variable references found in '$ParamName'"
-            }
+            # if ($VarRefs.count -ne 0) {
+            #     Write-BaduVerb "Found $($VarRefs.count) variable references in '$ParamName'"
+            # } else {
+            #     # Write-BaduDebug "No variable references found in '$ParamName'"
+            # }
         }
 
         foreach ($VarRef in $VarRefs) {
             Write-BaduVerb "handling variable '$($VarRef.value)'"
             $deployEnvVariable = Get-DeployConfigVariable -value $VarRef.Value
-            Write-BaduVerb "$($tab)replacing '$($VarRef.value)' with $($deployEnvVariable.type)` value from '$($deployEnvVariable.source)'"
+            Write-BaduVerb "$($tab)replacing '$($VarRef.value)' with $($deployEnvVariable.type)` value from env '$($deployEnvVariable.source)'"
 
             switch ($deployEnvVariable.type) {
                 'static' {

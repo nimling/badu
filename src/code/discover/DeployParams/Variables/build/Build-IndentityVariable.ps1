@@ -15,10 +15,16 @@ function Build-IdentityVariable {
     }
     
     process {
-        $account = (get-azcontext).account
+        $account = (get-azcontext -Debug:$false -Verbose:$false).account
         switch($account.Type){
             'User'{
+                # $verb = $VerbosePreference
+                # $VerbosePreference = 'SilentlyContinue'
+                # $deb = $DebugPreference
+                # $DebugPreference = 'SilentlyContinue'
                 $user = Get-AzADUser -Filter "userprincipalname eq '$($account.id)'"
+                # $VerbosePreference = $verb
+                # $DebugPreference = $deb
                 $outputs.principalId = $user.Id
                 $outputs.name = $user.DisplayName
                 $outputs.type = 'User'

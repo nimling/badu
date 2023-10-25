@@ -1,8 +1,13 @@
 enum deploymentScope{
+    Tenant
+    ManagementGroup
     Subscription
     ResourceGroup
-    ManagementGroup
-    Tenant
+}
+
+enum deploymentType{
+    Arm
+    Bicep
 }
 
 class deploymentScopeInfo{
@@ -13,15 +18,48 @@ class deploymentScopeInfo{
 }
 
 class deploymentItem{
-    [deploymentScope]$deployScope #mg, rg, sub, tenant
-    [string]$id
+    [deploymentScope]$scope
+    [string]$ScopeName
     [string]$name
-    # [string]$scopeName #subscriptions/{id}
-    [string]$filePath
-    [string]$parameterFilePath
-    [string]$basename
+    [string]$fullName
+    # [string]$parametersFullName
     [string]$environment
     [string]$type
+    [hashtable]$parameters
+    [int]$priority
+
+    [string]getScopeShortName()
+    {
+        $return = ""
+        switch($this.scope){
+            'Tenant' {
+                $return = "Ten"
+            }
+            "ManagementGroup" {
+                $return = "Mg"
+            }
+            "Subscription" {
+                $return = "Sub"
+            }
+            "ResourceGroup" {
+                $return = "Rg"
+            }
+        }
+        return $return
+    }
+
+    [string]ListString(){
+        $ScopeShort = $this.getScopeShortName()
+        $PriorityWithPad = "{0:d8}" -f $this.priority
+        $Pad = "-"*(([int]$this.scope))
+        return "|$Pad($($this.environment):$($ScopeShort):$($this.ScopeName))->$($this.name) ($PriorityWithPad)"
+    }
+    [string]ToString(){
+        $ScopeShort = $this.getScopeShortName()
+
+        $PriorityWithPad = "{0:d8}" -f $this.priority
+        return "($ScopeShort)$($this.ScopeName):$($this.name) ($PriorityWithPad)"
+    }
 }
 <#
     scope = subscription
@@ -33,4 +71,6 @@ class deploymentItem{
     environment = environment name
     type = deployment type (arm, bicep)
 #>
+
+
 
