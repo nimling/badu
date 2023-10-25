@@ -19,7 +19,7 @@ function Get-Deployment {
         )]
         [string]$Scope = "Current"
     )
-    
+
     begin {}
     process {
         switch ($context) {
@@ -29,7 +29,7 @@ function Get-Deployment {
                     return $Deployment
                 }
 
-                $Deployments = Get-AzResourceGroupDeployment -ResourceGroupName $Deployment.ResourceGroupName | Where-Object { $_.CorrelationId -eq $Deployment.CorrelationId }
+                $Deployments = Get-AzResourceGroupDeployment -ResourceGroupName $Deployment.ResourceGroupName -ErrorAction SilentlyContinue | Where-Object { $_.CorrelationId -eq $Deployment.CorrelationId }
                 if ($Scope -eq "Children") {
                     $Deployments = $Deployments | Where-Object { $_.Id -ne $id }
                 }
